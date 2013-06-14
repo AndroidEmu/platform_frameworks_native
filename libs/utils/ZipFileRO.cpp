@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /*
  * We must open binary files using open(path, ... | O_BINARY) under Windows.
