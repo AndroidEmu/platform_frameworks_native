@@ -258,6 +258,8 @@ public:
 
     friend class VSyncThread;
 
+    void setOrientation(int orientation) const;
+
     // for debugging ----------------------------------------------------------
     void dump(String8& out, char* scratch, size_t SIZE) const;
 

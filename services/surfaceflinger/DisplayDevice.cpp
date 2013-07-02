@@ -365,6 +365,11 @@ status_t DisplayDevice::orientationToTransfrom(
 
 void DisplayDevice::setProjection(int orientation,
         const Rect& viewport, const Rect& frame) {
+
+    // push orientation modifications into the HWComposer to rotate FB
+    const HWComposer& hwc = mFlinger->getHwComposer();
+    if (&hwc) hwc.setOrientation(orientation);
+
     mOrientation = orientation;
     mViewport = viewport;
     mFrame = frame;

@@ -755,6 +755,18 @@ void HWComposer::fbDump(String8& result) {
     }
 }
 
+void HWComposer::setOrientation(int orientation) const {
+    ALOGD("%s, mFbdev=%p, mFbDev->setOrientation=%p, orientation=%d",
+	  __FUNCTION__, mFbDev, mFbDev ? mFbDev->setOrientation : NULL,
+	  orientation);
+    if (mFbDev && mFbDev->setOrientation) {
+	mFbDev->setOrientation(mFbDev, orientation);
+    } else {
+	ALOGE("%s: can't set orientation", __FUNCTION__);
+    }
+}
+
+
 /*
  * Helper template to implement a concrete HWCLayer
  * This holds the pointer to the concrete hwc layer type

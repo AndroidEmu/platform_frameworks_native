@@ -141,6 +141,7 @@ private:
     friend class LayerBaseClient;
     friend class Layer;
     friend class LayerScreenshot;
+    friend class DisplayDevice;
 
     // We're reference counted, never destroy SurfaceFlinger directly
     virtual ~SurfaceFlinger();
