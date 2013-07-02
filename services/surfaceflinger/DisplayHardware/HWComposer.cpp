@@ -109,6 +109,33 @@ HWComposer::HWComposer(
 
     bool needVSyncThread = true;
 
+    char property_androVM_gles[PROPERTY_VALUE_MAX];
+    int is_androVM_gles = 0;
+
+    if ((property_get("androVM.gles", property_androVM_gles, NULL) > 0) && (atoi(property_androVM_gles)>0))
+        is_androVM_gles = 1;
+
+    if (is_androVM_gles) {
+        char property_androVM_gles_first_try[PROPERTY_VALUE_MAX];
+        time_t androVM_gles_first_try = 0;
+        char exec_set[64+PROPERTY_VALUE_MAX];
+        time_t current_time = time(NULL);
+
+        if (property_get("androVM.gles.first_try", property_androVM_gles_first_try, NULL) > 0)
+            androVM_gles_first_try = atoi(property_androVM_gles_first_try);
+        if (!androVM_gles_first_try) {
+            sprintf(exec_set, "/system/bin/androVM_setprop androVM.gles.first_try %u", current_time);
+            system(exec_set);
+        }
+        else if ((current_time - androVM_gles_first_try) > 60) {
+            ALOGE("Switching to AndroVM Software OpenGL...");
+            system("/system/bin/androVM_setprop androVM.gles 0");
+            system("/system/bin/androVM_setprop androVM.gles.renderer 0");
+            system("/system/bin/setdpi `getprop androVM.vbox_dpi`");
+            exit(0);
+        }
+    }
+
     // Note: some devices may insist that the FB HAL be opened before HWC.
     loadFbHalModule();
     loadHwcModule();
@@ -198,6 +225,9 @@ HWComposer::HWComposer(
         // we don't have VSYNC support, we need to fake it
         mVSyncThread = new VSyncThread(*this);
     }
+
+    if (is_androVM_gles)
+       system("/system/bin/androVM_setprop androVM.gles.first_try 0");
 }
 
 HWComposer::~HWComposer() {
