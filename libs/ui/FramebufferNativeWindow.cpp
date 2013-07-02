@@ -199,6 +199,14 @@ int FramebufferNativeWindow::setSwapInterval(
     return fb->setSwapInterval(fb, interval);
 }
 
+void FramebufferNativeWindow::setOrientation(int orientation)
+{
+    ALOGE("setOrientation with fbDev=%p fbDev->setOrientation=%p orientation=%d\n", fbDev, fbDev->setOrientation, orientation);
+    if (fbDev && fbDev->setOrientation)
+        fbDev->setOrientation(fbDev, orientation);
+}
+
+
 void FramebufferNativeWindow::dump(String8& result) {
     if (fbDev->common.version >= 1 && fbDev->dump) {
         const size_t SIZE = 4096;
