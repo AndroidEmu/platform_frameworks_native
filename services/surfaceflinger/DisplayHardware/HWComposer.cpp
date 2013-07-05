@@ -152,7 +152,7 @@ HWComposer::HWComposer(
     if ((!mHwc || !hwcHasApiVersion(mHwc, HWC_DEVICE_API_VERSION_1_1))
             && !mFbDev) {
         ALOGE("ERROR: failed to open framebuffer, aborting");
-        abort();
+        exit(1);
     }
 
     // these display IDs are always reserved
