@@ -432,12 +432,7 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
     ContextRef _c(dp.get(), ctx);
     if (!_c.get())
         return setError(EGL_BAD_CONTEXT, EGL_FALSE);
-
-    if (eglGetCurrentContext() == ctx) {
-        ALOGE("eglApi: destroying current context, calling eglMakeCurrent on EGL_NO_CONTEXT\n");
-        eglMakeCurrent(dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    }
-
+    
     egl_context_t * const c = get_context(ctx);
     EGLBoolean result = c->cnx->egl.eglDestroyContext(dp->disp.dpy, c->context);
     if (result == EGL_TRUE) {
