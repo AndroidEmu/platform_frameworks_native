@@ -108,6 +108,33 @@ HWComposer::HWComposer(
 
     bool needVSyncThread = true;
 
+    char property_androVM_gles[PROPERTY_VALUE_MAX];
+    int is_androVM_gles = 0;
+
+    if ((property_get("androVM.gles", property_androVM_gles, NULL) > 0) && (atoi(property_androVM_gles)>0))
+        is_androVM_gles = 1;
+
+    if (is_androVM_gles) {
+        char property_androVM_gles_first_try[PROPERTY_VALUE_MAX];
+        time_t androVM_gles_first_try = 0;
+        char exec_set[64+PROPERTY_VALUE_MAX];
+        time_t current_time = time(NULL);
+
+        if (property_get("androVM.gles.first_try", property_androVM_gles_first_try, NULL) > 0)
+            androVM_gles_first_try = atoi(property_androVM_gles_first_try);
+        if (!androVM_gles_first_try) {
+            sprintf(exec_set, "/system/bin/androVM_setprop androVM.gles.first_try %u", current_time);
+            system(exec_set);
+        }
+        else if ((current_time - androVM_gles_first_try) > 60) {
+            ALOGE("Switching to AndroVM Software OpenGL...");
+            system("/system/bin/androVM_setprop androVM.gles 0");
+            system("/system/bin/androVM_setprop androVM.gles.renderer 0");
+            system("/system/bin/setdpi `getprop androVM.vbox_dpi`");
+            exit(0);
+        }
+    }
+
     // Note: some devices may insist that the FB HAL be opened before HWC.
     int fberr = loadFbHalModule();
     loadHwcModule();
@@ -125,7 +152,7 @@ HWComposer::HWComposer(
             && !mFbDev) {
         ALOGE("ERROR: failed to open framebuffer (%s), aborting",
                 strerror(-fberr));
-        abort();
+        exit(1);
     }
 
     // these display IDs are always reserved
@@ -198,6 +225,9 @@ HWComposer::HWComposer(
         // we don't have VSYNC support, we need to fake it
         mVSyncThread = new VSyncThread(*this);
     }
+
+    if (is_androVM_gles)
+       system("/system/bin/androVM_setprop androVM.gles.first_try 0");
 }
 
 HWComposer::~HWComposer() {
@@ -792,6 +822,17 @@ sp<Fence> HWComposer::getLastRetireFence(int32_t id) {
     if (uint32_t(id)>31 || !mAllocatedDisplayIDs.hasBit(id))
         return Fence::NO_FENCE;
     return mDisplayData[id].lastRetireFence;
+}
+
+void HWComposer::setOrientation(int orientation) const {
+    ALOGD("%s, mFbdev=%p, mFbDev->setOrientation=%p, orientation=%d",
+	  __FUNCTION__, mFbDev, mFbDev ? mFbDev->setOrientation : NULL,
+	  orientation);
+    if (mFbDev && mFbDev->setOrientation) {
+	mFbDev->setOrientation(mFbDev, orientation);
+    } else {
+	ALOGE("%s: can't set orientation", __FUNCTION__);
+    }
 }
 
 /*

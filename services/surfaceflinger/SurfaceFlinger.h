@@ -126,6 +126,7 @@ private:
     friend class DisplayEventConnection;
     friend class Layer;
     friend class SurfaceTextureLayer;
+    friend class DisplayDevice;
 
     // We're reference counted, never destroy SurfaceFlinger directly
     virtual ~SurfaceFlinger();
