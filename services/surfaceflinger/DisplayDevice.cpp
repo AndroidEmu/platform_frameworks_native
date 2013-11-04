@@ -451,6 +451,10 @@ void DisplayDevice::setProjection(int orientation,
         mScissor = getBounds();
     }
 
+    // push orientation modifications into the HWComposer to rotate FB
+    const HWComposer& hwc = mFlinger->getHwComposer();
+    if (&hwc) hwc.setOrientation(orientation);
+
     mOrientation = orientation;
     mViewport = viewport;
     mFrame = frame;
