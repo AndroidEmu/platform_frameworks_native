@@ -2763,6 +2763,9 @@ status_t GraphicPlane::setOrientation(int orientation)
      case ISurfaceComposer::eOrientation90:
         hw.setOrientation(1);
 	break;
+     case ISurfaceComposer::eOrientation180:
+        hw.setOrientation(2);
+        break;
      case ISurfaceComposer::eOrientation270:
  	hw.setOrientation(3);
 	break;
