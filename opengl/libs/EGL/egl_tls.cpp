@@ -30,8 +30,11 @@
 namespace android {
 
 pthread_key_t egl_tls_t::sKey = TLS_KEY_NOT_INITIALIZED;
+#ifdef BUGGY_TLS
 pthread_once_t egl_tls_t::sOnceKey = PTHREAD_ONCE_INIT;
-
+#else
+pthread_mutex_t egl_tls_t::sLockKey = PTHREAD_MUTEX_INITIALIZER;
+#endif
 egl_tls_t::egl_tls_t()
     : error(EGL_SUCCESS), ctx(0), logCallWithNoContext(EGL_TRUE) {
 }
@@ -59,12 +62,21 @@ const char *egl_tls_t::egl_strerror(EGLint err) {
 
 void egl_tls_t::validateTLSKey()
 {
+#ifdef BUGGY_TLS
     struct TlsKeyInitializer {
         static void create() {
             pthread_key_create(&sKey, (void (*)(void*))&eglReleaseThread);
         }
     };
     pthread_once(&sOnceKey, TlsKeyInitializer::create);
+#else
+    if (sKey == -1) {
+        pthread_mutex_lock(&sLockKey);
+        if (sKey == -1)
+            pthread_key_create(&sKey, NULL);
+        pthread_mutex_unlock(&sLockKey);
+    }
+#endif
 }
 
 void egl_tls_t::setErrorEtcImpl(

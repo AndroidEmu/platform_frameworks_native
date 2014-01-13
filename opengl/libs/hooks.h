@@ -44,8 +44,9 @@
 // are generated at compile time.
 #define MAX_NUMBER_OF_GL_EXTENSIONS 256
 
-
+#ifdef BUGGY_TLS
 #include <bionic_tls.h>  /* special private C library header */
+#endif
 
 // ----------------------------------------------------------------------------
 namespace android {
@@ -74,7 +75,7 @@ struct gl_hooks_t {
 #undef EGL_ENTRY
 
 EGLAPI void setGlThreadSpecific(gl_hooks_t const *value);
-
+#ifdef BUGGY_TLS
 // We have a dedicated TLS slot in bionic
 inline gl_hooks_t const * volatile * get_tls_hooks() {
     volatile void *tls_base = __get_tls();
@@ -88,6 +89,9 @@ inline EGLAPI gl_hooks_t const* getGlThreadSpecific() {
     gl_hooks_t const* hooks = tls_hooks[TLS_SLOT_OPENGL_API];
     return hooks;
 }
+#else
+EGLAPI gl_hooks_t const* getGlThreadSpecific();
+#endif
 
 // ----------------------------------------------------------------------------
 }; // namespace android
