@@ -230,6 +230,10 @@ static int gl_no_context() {
 
 static void early_egl_init(void)
 {
+#ifndef BUGGY_TLS
+    pthread_key_create(&gGLWrapperKey, NULL);
+#endif
+
 #if EGL_TRACE
     pthread_key_create(&gGLTraceKey, NULL);
     initEglTraceLevel();
@@ -343,10 +347,25 @@ void gl_noop() {
 
 // ----------------------------------------------------------------------------
 
+#ifdef BUGGY_TLS
+
 void setGlThreadSpecific(gl_hooks_t const *value) {
     gl_hooks_t const * volatile * tls_hooks = get_tls_hooks();
     tls_hooks[TLS_SLOT_OPENGL_API] = value;
 }
+
+#else
+
+void setGlThreadSpecific(gl_hooks_t const *value) {
+    pthread_setspecific(gGLWrapperKey, value);
+}
+
+gl_hooks_t const* getGlThreadSpecific() {
+    gl_hooks_t const* hooks =  static_cast<gl_hooks_t*>(pthread_getspecific(gGLWrapperKey));
+    if (hooks) return hooks;
+    return &gHooksNoContext;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // GL / EGL hooks

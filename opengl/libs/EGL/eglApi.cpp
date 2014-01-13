@@ -965,7 +965,9 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *procname)
             }
 
             if (found) {
+#ifdef BUGGY_TLS
                 addr = gExtensionForwarders[slot];
+#endif
                 sGLExtentionMap.add(name, addr);
                 sGLExtentionSlot++;
             }
